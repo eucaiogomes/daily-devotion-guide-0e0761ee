@@ -185,38 +185,74 @@ function ForcaPage() {
         </div>
       </header>
 
-      <main className="mx-auto flex w-full max-w-md flex-1 flex-col px-5 py-5">
-        {/* Status: vidas + sequência */}
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-1" aria-label={`${livesLeft} vidas restantes`}>
-            {Array.from({ length: MAX_MISTAKES }).map((_, i) => (
-              <Heart
-                key={i}
-                className={`size-5 transition ${
-                  i < livesLeft ? "fill-streak text-streak" : "text-muted opacity-40"
-                }`}
-              />
-            ))}
+      <main className="mx-auto flex w-full max-w-md flex-1 flex-col px-5 py-4">
+        {/* Faixa de status: vidas + boneco compacto + sequência */}
+        <div className="flex items-center justify-between gap-3 rounded-2xl border border-border bg-card/60 px-3 py-2">
+          <div className="flex flex-col gap-1">
+            <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
+              Vidas
+            </span>
+            <div className="flex items-center gap-0.5" aria-label={`${livesLeft} vidas restantes`}>
+              {Array.from({ length: MAX_MISTAKES }).map((_, i) => (
+                <Heart
+                  key={i}
+                  className={`size-4 transition ${
+                    i < livesLeft ? "fill-streak text-streak" : "text-muted opacity-40"
+                  }`}
+                />
+              ))}
+            </div>
           </div>
-          <span className="text-xs font-extrabold uppercase tracking-widest text-muted-foreground tabular-nums">
-            Sequência: <span className="text-success">{streak}</span>
-          </span>
-        </div>
-
-        {/* Boneco */}
-        <div className="mt-4 flex justify-center">
           <Hangman mistakes={mistakes} />
+          <div className="flex flex-col items-end gap-1">
+            <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
+              Sequência
+            </span>
+            <span className="font-display text-lg font-extrabold text-success tabular-nums">
+              {streak}
+            </span>
+          </div>
         </div>
 
-        {/* Dica de salmo */}
-        <p className="mt-4 text-center text-[11px] font-bold uppercase tracking-widest text-muted-foreground">
-          <BookOpen className="mr-1 inline size-3.5 text-primary" />
-          {word.psalmRef}
-        </p>
+        {/* DESTAQUE PRINCIPAL: o versículo de contexto */}
+        <section
+          aria-label="Versículo de contexto"
+          className="mt-4 rounded-3xl border-2 border-primary/30 bg-gradient-to-br from-primary/10 via-card to-card p-5 shadow-chunky"
+        >
+          <div className="flex items-center justify-between">
+            <span className="inline-flex items-center gap-1.5 rounded-full bg-primary/15 px-2.5 py-1 text-[10px] font-extrabold uppercase tracking-widest text-primary">
+              <BookOpen className="size-3.5" />
+              {word.verseRef}
+            </span>
+            <button
+              onClick={() => speak(word.verseEn)}
+              aria-label="Ouvir versículo"
+              className={`flex size-8 items-center justify-center rounded-full bg-card text-primary border border-border ${
+                speaking ? "animate-pulse" : ""
+              }`}
+            >
+              <Volume2 className="size-4" />
+            </button>
+          </div>
 
-        {/* Palavra */}
+          <Quote className="mt-3 size-5 text-primary/40" />
+          <p className="mt-1 font-display text-lg font-bold leading-snug text-foreground">
+            <ContextVerse verseEn={word.verseEn} word={word.en} finished={finished} />
+          </p>
+          <p className="mt-2 text-sm font-medium italic text-muted-foreground">
+            "{word.versePt}"
+          </p>
+          <p className="mt-3 text-[11px] font-bold uppercase tracking-widest text-muted-foreground">
+            {word.psalmRef}
+          </p>
+        </section>
+
+        {/* Pergunta + palavra */}
+        <p className="mt-4 text-center text-xs font-extrabold uppercase tracking-widest text-muted-foreground">
+          Qual é a palavra que falta?
+        </p>
         <div
-          className="mt-3 flex flex-wrap justify-center gap-1.5"
+          className="mt-2 flex flex-wrap justify-center gap-1.5"
           aria-label={`Palavra de ${letters.length} letras`}
         >
           {letters.map((l, i) => {
@@ -238,10 +274,12 @@ function ForcaPage() {
           })}
         </div>
 
-        {/* Tradução / dica */}
-        <p className="mt-3 text-center text-sm font-semibold text-muted-foreground italic">
-          {hintUsed || finished ? `"${word.pt}"` : "Toque em 💡 para ver a tradução"}
-        </p>
+        {/* Tradução da palavra (apenas se usar dica ou terminar) */}
+        {(hintUsed || finished) && (
+          <p className="mt-2 text-center text-sm font-semibold text-muted-foreground italic">
+            Tradução: <span className="text-foreground not-italic">{word.pt}</span>
+          </p>
+        )}
 
         {/* Painel pós-jogo OU teclado */}
         {finished ? (
