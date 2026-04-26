@@ -172,7 +172,7 @@ function ConfigPage() {
 
   return (
     <div className="min-h-screen bg-gradient-sky pb-28">
-      <AppHeader streak={3} gold={42} hearts={5} />
+      <AppHeader />
 
       <main className="mx-auto max-w-md px-5 pt-6 space-y-4">
         <header className="animate-slide-up">
@@ -267,20 +267,20 @@ function ConfigPage() {
             <h2 className="font-display text-lg font-bold">Meu progresso</h2>
           </div>
 
-          <div className="grid grid-cols-3 gap-3 mb-4">
-            <div className="rounded-2xl bg-primary/10 p-3 text-center">
-              <p className="font-display text-2xl font-bold text-primary tabular-nums">{currentDay}</p>
-              <p className="text-[10px] font-bold uppercase tracking-wider text-primary/70 mt-1">Dias</p>
+          <div className="grid grid-cols-3 gap-2 mb-4">
+            <div className="rounded-2xl bg-primary/10 p-3 text-center overflow-hidden">
+              <p className="font-display text-xl font-bold text-primary tabular-nums leading-none">{currentDay}</p>
+              <p className="text-[9px] font-bold uppercase tracking-wider text-primary/70 mt-1.5">Dias</p>
             </div>
-            <div className="rounded-2xl bg-streak/10 p-3 text-center">
-              <p className="font-display text-2xl font-bold text-streak tabular-nums flex items-center justify-center gap-1">
-                <Flame className="size-4 fill-current" />3
+            <div className="rounded-2xl bg-streak/10 p-3 text-center overflow-hidden">
+              <p className="font-display text-xl font-bold text-streak tabular-nums leading-none flex items-center justify-center gap-0.5">
+                <Flame className="size-4 fill-current shrink-0" /><span>3</span>
               </p>
-              <p className="text-[10px] font-bold uppercase tracking-wider text-streak/70 mt-1">Sequência</p>
+              <p className="text-[9px] font-bold uppercase tracking-wider text-streak/70 mt-1.5">Sequência</p>
             </div>
-            <div className="rounded-2xl bg-success/10 p-3 text-center">
-              <p className="font-display text-2xl font-bold text-success tabular-nums">{yearProgress}%</p>
-              <p className="text-[10px] font-bold uppercase tracking-wider text-success/70 mt-1">Jornada</p>
+            <div className="rounded-2xl bg-success/10 p-3 text-center overflow-hidden">
+              <p className="font-display text-xl font-bold text-success tabular-nums leading-none">{yearProgress}%</p>
+              <p className="text-[9px] font-bold uppercase tracking-wider text-success/70 mt-1.5">Jornada</p>
             </div>
           </div>
 
@@ -309,10 +309,10 @@ function ConfigPage() {
           </div>
 
           <div className="py-3.5 space-y-1">
-            <p className="text-sm font-bold text-foreground">
+            <p className="text-sm font-bold text-foreground truncate">
               {displayName ?? "Visitante"}
             </p>
-            <p className="text-xs text-muted-foreground">
+            <p className="text-xs text-muted-foreground truncate">
               {user?.is_anonymous ? "Conta visitante · progresso local" : user?.email}
             </p>
           </div>

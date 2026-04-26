@@ -98,10 +98,10 @@ export function GameModeHub() {
                 +{m.xp} XP
               </span>
             </div>
-            <p className="mt-3 font-display text-base font-bold leading-tight text-foreground">
+            <p className="mt-3 font-display text-base font-bold leading-tight text-foreground break-words">
               {m.title}
             </p>
-            <p className="text-[11px] text-muted-foreground font-semibold mt-1 leading-tight">
+            <p className="text-[11px] text-muted-foreground font-semibold mt-1 leading-tight break-words">
               {m.subtitle}
             </p>
           </Link>

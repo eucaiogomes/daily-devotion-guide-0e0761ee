@@ -6,4 +6,12 @@
 // You can pass additional config via defineConfig({ vite: { ... } }) if needed.
 import { defineConfig } from "@lovable.dev/vite-tanstack-config";
 
-export default defineConfig();
+export default defineConfig({
+  // Desativa o adapter do Cloudflare para usar o preset Vercel
+  cloudflare: false,
+  tanstackStart: {
+    server: {
+      preset: "vercel",
+    },
+  },
+});

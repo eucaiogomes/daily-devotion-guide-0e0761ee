@@ -1,12 +1,12 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { AppHeader } from "@/components/AppHeader";
-import { ArrowLeft, Volume2, VolumeX, Check, Sparkles, HandHeart, Heart, Mic, Lightbulb, Headphones } from "lucide-react";
+import { ArrowLeft, Volume2, VolumeX, Check, Sparkles, HandHeart, Heart, Mic, Lightbulb, Headphones, Shield, Crown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { PronunciationRecorder } from "@/components/PronunciationRecorder";
 import { useSpeech } from "@/hooks/useSpeech";
 import { useSpeechRecognition } from "@/hooks/useSpeechRecognition";
 import { useFeedbackSound, isSoundEnabled, setSoundEnabled } from "@/hooks/useFeedbackSound";
+import { useGameState } from "@/hooks/useGameState";
 import { getPsalmByDay, TOTAL_DAYS, type PsalmLesson } from "@/data/psalms";
 import {
   getLessonProgress,
@@ -14,6 +14,7 @@ import {
   markLessonDone,
   resetLessonProgress,
 } from "@/lib/lessonProgress";
+import { MAX_SHIELDS } from "@/lib/gameState";
 
 export const Route = createFileRoute("/lesson/$day")({
   head: () => ({
@@ -296,19 +297,21 @@ function LessonPage() {
   }, [idx, total, dayNum, resumeOffer]);
 
   const [feedback, setFeedbackRaw] = useState<"idle" | "right" | "wrong">("idle");
+  const [errors, setErrors] = useState(0);
   const { play } = useFeedbackSound();
-  // Inicia true em SSR e client para evitar mismatch; sincroniza com a
-  // preferência salva após hidratação.
-  const [soundOn, setSoundOn] = useState(true);
-  useEffect(() => {
-    setSoundOn(isSoundEnabled());
-  }, []);
+  const { liveShields, regenSec, regenInMs, loseShield, completeMission } = useGameState();
 
-  // Wrapper que toca som quando o estado de feedback muda para right/wrong.
+  const [soundOn, setSoundOn] = useState(true);
+  useEffect(() => { setSoundOn(isSoundEnabled()); }, []);
+
   const setFeedback = (f: "idle" | "right" | "wrong") => {
     setFeedbackRaw(f);
     if (f === "right") play("right");
-    else if (f === "wrong") play("wrong");
+    else if (f === "wrong") {
+      play("wrong");
+      loseShield();
+      setErrors((e) => e + 1);
+    }
   };
 
   const toggleSound = () => {
@@ -326,7 +329,7 @@ function LessonPage() {
   };
 
   if (idx >= total) {
-    return <LessonComplete day={day} psalm={psalm} />;
+    return <LessonComplete day={day} psalm={psalm} errors={errors} onMount={() => completeMission(errors)} />;
   }
 
   const stepNumber = idx + 1;
@@ -348,7 +351,7 @@ function LessonPage() {
       {(step.kind === "prayer" || step.kind === "intro" || step.kind === "speak" || step.kind === "flash") && (
         <div className="lesson-aurora" aria-hidden="true" />
       )}
-      {/* Cabeçalho enxuto: apenas voltar + barra fina. Sem badges, sem rótulos, sem contador. */}
+      {/* Cabeçalho do devocional: voltar + escudos + barra de progresso */}
       <header className="sticky top-0 z-30 bg-background/85 backdrop-blur-md">
         <div className="max-w-md mx-auto px-4 py-3 flex items-center gap-3">
           <Link to="/" className="p-1 -ml-1 text-muted-foreground hover:text-foreground" aria-label="Voltar para início">
@@ -361,13 +364,29 @@ function LessonPage() {
               aria-valuenow={stepNumber}
               aria-valuemin={1}
               aria-valuemax={total}
-              aria-label={`Avanço do devocional`}
+              aria-label="Avanço do devocional"
             >
               <div
                 className="h-full bg-gradient-gold transition-all duration-700 ease-out"
                 style={{ width: `${currentProgress}%` }}
               />
             </div>
+          </div>
+          {/* Escudos de Davi */}
+          <div className="flex items-center gap-1" title={regenInMs > 0 ? `Próximo escudo em ${regenSec}s` : "Escudos de Davi"}>
+            {Array.from({ length: MAX_SHIELDS }).map((_, i) => (
+              <Shield
+                key={i}
+                className={`size-4 transition-all ${
+                  i < liveShields ? "fill-accent text-accent" : "text-muted-foreground/25 fill-muted/10"
+                } ${liveShields === 0 && i === 0 ? "animate-shake" : ""}`}
+              />
+            ))}
+            {regenInMs > 0 && liveShields < MAX_SHIELDS && (
+              <span className="text-[10px] font-extrabold tabular-nums text-muted-foreground ml-0.5">
+                {regenSec}s
+              </span>
+            )}
           </div>
           <button
             onClick={toggleSound}
@@ -563,7 +582,7 @@ function PrayerChatTurn({
           </div>
 
           {/* Texto em inglês — palavras tocáveis */}
-          <p className="mt-2 font-display text-base leading-snug">
+          <p className="mt-2 font-display text-base leading-snug break-words">
             {line.en.split(" ").map((word, index) => {
               const cleaned = word.replace(/[^a-zA-Z']/g, "").toLowerCase();
               const isTapped = tappedWords.has(cleaned);
@@ -579,7 +598,7 @@ function PrayerChatTurn({
               );
             })}
           </p>
-          <p className="mt-1.5 text-xs italic text-muted-foreground">{line.pt}</p>
+          <p className="mt-1.5 text-xs italic text-muted-foreground break-words">{line.pt}</p>
           <p className="mt-1 text-right text-[10px] text-muted-foreground">
             {speaking ? "tocando…" : "toque para ouvir"}
           </p>
@@ -724,14 +743,14 @@ function IntroStep({ psalm }: { psalm: PsalmLesson }) {
           <span className="flex size-11 shrink-0 items-center justify-center rounded-full bg-gradient-hero text-primary-foreground shadow-soft">
             <Volume2 className="size-5" />
           </span>
-          <div className="min-w-0 flex-1">
-            <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
+          <div className="min-w-0 flex-1 overflow-hidden">
+            <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground truncate">
               {v1.ref}
             </p>
-            <p className="font-display text-sm font-bold text-foreground truncate">
+            <p className="font-display text-sm font-bold text-foreground line-clamp-2">
               "{v1.en}"
             </p>
-            <p className="text-[11px] text-muted-foreground italic truncate mt-0.5">
+            <p className="text-[11px] text-muted-foreground italic line-clamp-1 mt-0.5">
               {v1.pt}
             </p>
           </div>
@@ -836,8 +855,8 @@ function TranslateExercise({ step, feedback, setFeedback }: { step: Extract<Step
 
   return (
     <div>
-      <h2 className="font-display text-2xl font-bold">Diga em inglês, com o coração</h2>
-      <p className="mt-2 text-base text-muted-foreground italic">"{step.pt}"</p>
+      <h2 className="font-display text-2xl font-bold leading-tight">Diga em inglês, com o coração</h2>
+      <p className="mt-2 text-base text-muted-foreground italic break-words">"{step.pt}"</p>
 
       <div className="mt-6 min-h-24 border-b-2 border-dashed border-border pb-3 flex flex-wrap gap-2">
         {picked.map((w, i) => (
@@ -888,8 +907,8 @@ function ChoiceExercise({ step, feedback, setFeedback }: { step: Extract<Step, {
 
   return (
     <div>
-      <h2 className="font-display text-2xl font-bold">O que esta oração diz?</h2>
-      <p className="mt-2 text-muted-foreground italic">{step.prompt}</p>
+      <h2 className="font-display text-2xl font-bold leading-tight">O que esta oração diz?</h2>
+      <p className="mt-2 text-muted-foreground italic break-words">{step.prompt}</p>
       <div className="mt-6 space-y-3">
         {step.options.map((opt, i) => {
           const isSel = selected === i;
@@ -953,7 +972,7 @@ function FillExercise({ step, feedback, setFeedback }: { step: Extract<Step, { k
 
   return (
     <div>
-      <h2 className="font-display text-2xl font-bold">Complete o versículo</h2>
+      <h2 className="font-display text-2xl font-bold leading-tight">Complete o versículo</h2>
       <p className="mt-1 text-sm text-muted-foreground">
         {step.ref ? <span className="font-semibold">{step.ref}</span> : "Escuta o coração — as palavras já estão aí."}
       </p>
@@ -967,7 +986,7 @@ function FillExercise({ step, feedback, setFeedback }: { step: Extract<Step, { k
         >
           <Volume2 className="size-5" />
         </button>
-        <p className="font-display text-xl leading-relaxed">
+        <p className="font-display text-xl leading-relaxed break-words">
           {step.tokens.map((tok, i) => {
             const blankPos = blankPosByToken.get(i);
             if (blankPos !== undefined) {
@@ -1197,8 +1216,8 @@ function WordOrderExercise({ step, feedback, setFeedback }: { step: Extract<Step
 
   return (
     <div>
-      <h2 className="font-display text-2xl font-bold">Monte o versículo de memória</h2>
-      <p className="mt-1 text-sm text-muted-foreground">
+      <h2 className="font-display text-2xl font-bold leading-tight">Monte o versículo de memória</h2>
+      <p className="mt-1 text-sm text-muted-foreground break-words">
         <span className="font-semibold">{step.ref}</span> — {step.pt}
       </p>
 
@@ -1352,8 +1371,8 @@ function DictationExercise({ step, feedback, setFeedback }: { step: Extract<Step
           <p className="text-[10px] uppercase tracking-widest font-semibold text-muted-foreground">
             {step.ref}
           </p>
-          <p className="font-display text-base mt-1 leading-snug">"{step.en}"</p>
-          <p className="text-xs text-muted-foreground mt-1 italic">{step.pt}</p>
+          <p className="font-display text-base mt-1 leading-snug break-words">"{step.en}"</p>
+          <p className="text-xs text-muted-foreground mt-1 italic break-words">{step.pt}</p>
         </div>
       )}
 
@@ -1382,8 +1401,8 @@ function SpeakExercise({ step, feedback, setFeedback }: { step: Extract<Step, { 
       </p>
 
       <div className="mt-4 rounded-2xl bg-card border border-border/60 p-4 text-left shadow-soft">
-        <p className="font-display text-lg leading-snug">"{step.en}"</p>
-        <p className="text-xs text-muted-foreground mt-1 italic">{step.pt}</p>
+        <p className="font-display text-lg leading-snug break-words">"{step.en}"</p>
+        <p className="text-xs text-muted-foreground mt-1 italic break-words">{step.pt}</p>
       </div>
 
       <div className="mt-6">
@@ -1523,38 +1542,88 @@ function FooterAction({ step, feedback, onContinue, setFeedback }: { step: Step;
   );
 }
 
-function LessonComplete({ day, psalm }: { day: string; psalm: PsalmLesson }) {
+function LessonComplete({
+  day,
+  psalm,
+  errors,
+  onMount,
+}: {
+  day: string;
+  psalm: PsalmLesson;
+  errors: number;
+  onMount: () => void;
+}) {
   const { speak } = useSpeech();
   const { play } = useFeedbackSound();
+  const { talentos, streak } = useGameState();
   const mv = psalm.memoryVerse;
   const dayNum = parseInt(day, 10) || 1;
   const nextDay = dayNum + 1;
   const hasNext = nextDay <= TOTAL_DAYS;
+  const perfect = errors === 0;
+  const talentosEarned = perfect ? 50 : 30;
+
   useEffect(() => {
+    onMount();
     const t = setTimeout(() => play("complete"), 250);
     return () => clearTimeout(t);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
   return (
     <div className="min-h-screen bg-gradient-sky flex items-center justify-center px-6 relative overflow-hidden">
       <div className="lesson-aurora" aria-hidden="true" />
-      <div className="text-center max-w-sm animate-pop-in relative z-10">
-        <div className="mx-auto size-20 rounded-full bg-gradient-gold flex items-center justify-center shadow-soft animate-breathe">
-          <Sparkles className="size-10 text-white" />
+      <div className="text-center max-w-sm animate-pop-in relative z-10 py-10">
+
+        {/* Ícone de recompensa */}
+        <div className={`mx-auto size-20 rounded-full flex items-center justify-center shadow-soft animate-breathe ${perfect ? "bg-gradient-gold" : "bg-gradient-hero"}`}>
+          <Crown className="size-10 text-white fill-current" />
         </div>
-        <h1 className="font-display text-3xl font-bold mt-6 leading-tight">
-          A Palavra ficou em ti.
+
+        <h1 className="font-display text-3xl font-bold mt-5 leading-tight">
+          {perfect ? "Perfeito! 👑" : "Missão cumprida!"}
         </h1>
-        <p className="text-muted-foreground mt-2 text-sm">
-          Dia {day} • {psalm.title}
+        <p className="text-muted-foreground mt-1 text-sm">
+          Dia {day} · {psalm.title}
         </p>
 
-        <div className="mt-6 rounded-3xl bg-card border border-border/60 p-5 text-left shadow-soft">
+        {/* Recompensas */}
+        <div className="mt-5 grid grid-cols-3 gap-2">
+          <RewardChip
+            icon="👑"
+            label="Talentos"
+            value={`+${talentosEarned}`}
+            sub="Salomão"
+            color="bg-gold/10 text-gold border-gold/20"
+          />
+          <RewardChip
+            icon="🔥"
+            label="Louvor"
+            value={`${streak}`}
+            sub={streak === 1 ? "dia" : "dias"}
+            color="bg-streak/10 text-streak border-streak/20"
+          />
+          <RewardChip
+            icon="⚔️"
+            label="Erros"
+            value={`${errors}`}
+            sub={errors === 0 ? "perfeito!" : "erro(s)"}
+            color={perfect ? "bg-success/10 text-success border-success/20" : "bg-muted text-muted-foreground border-border"}
+          />
+        </div>
+
+        {/* Total de talentos */}
+        <p className="mt-3 text-xs text-muted-foreground font-semibold">
+          Total: <span className="text-gold font-bold">{talentos} Talentos de Salomão</span>
+        </p>
+
+        {/* Versículo de memória */}
+        <div className="mt-5 rounded-3xl bg-card border border-border/60 p-5 text-left shadow-soft">
           <p className="text-[10px] uppercase tracking-widest font-semibold text-primary">
-            Guarda no coração • {mv.ref}
+            Guarda no coração · {mv.ref}
           </p>
-          <p className="font-display text-lg mt-2 leading-snug">"{mv.en}"</p>
-          <p className="text-xs text-muted-foreground mt-1 italic">{mv.pt}</p>
+          <p className="font-display text-lg mt-2 leading-snug break-words">"{mv.en}"</p>
+          <p className="text-xs text-muted-foreground mt-1 italic break-words">{mv.pt}</p>
           <button
             onClick={() => speak(mv.en)}
             className="mt-3 inline-flex items-center gap-2 text-xs font-semibold text-primary"
@@ -1563,8 +1632,8 @@ function LessonComplete({ day, psalm }: { day: string; psalm: PsalmLesson }) {
           </button>
         </div>
 
-        <p className="mt-6 text-sm text-muted-foreground italic px-2">
-          Leva esta palavra contigo pelo dia. Repete-a baixinho.
+        <p className="mt-4 text-sm text-muted-foreground italic px-2">
+          Leva esta palavra contigo pelo dia.
         </p>
 
         {hasNext ? (
@@ -1593,4 +1662,25 @@ function LessonComplete({ day, psalm }: { day: string; psalm: PsalmLesson }) {
   );
 }
 
-void AppHeader;
+function RewardChip({
+  icon,
+  label,
+  value,
+  sub,
+  color,
+}: {
+  icon: string;
+  label: string;
+  value: string;
+  sub: string;
+  color: string;
+}) {
+  return (
+    <div className={`rounded-2xl border p-2.5 flex flex-col items-center gap-0.5 overflow-hidden ${color}`}>
+      <span className="text-xl leading-none">{icon}</span>
+      <span className="text-[9px] font-bold uppercase tracking-wide opacity-70 truncate w-full text-center">{label}</span>
+      <span className="font-display text-lg font-bold leading-none tabular-nums">{value}</span>
+      <span className="text-[9px] opacity-70 truncate w-full text-center">{sub}</span>
+    </div>
+  );
+}

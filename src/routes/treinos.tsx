@@ -20,7 +20,7 @@ export const Route = createFileRoute("/treinos")({
 function TreinosPage() {
   return (
     <div className="min-h-screen bg-gradient-sky pb-28">
-      <AppHeader streak={3} gold={42} hearts={5} />
+      <AppHeader />
 
       <main className="mx-auto max-w-md px-5 pt-6 space-y-6">
 

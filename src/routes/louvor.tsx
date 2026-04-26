@@ -367,8 +367,8 @@ function LouvorPage() {
       <main className="flex-1 max-w-md mx-auto w-full px-5 py-5 flex flex-col gap-4">
 
         {/* Badge da música */}
-        <div className="flex items-center justify-between animate-slide-up">
-          <span className="inline-flex items-center gap-1.5 rounded-full bg-card border border-border/60 px-3 py-1.5 text-xs font-bold shadow-sm">
+        <div className="flex items-center justify-between gap-3 animate-slide-up">
+          <span className="inline-flex items-center gap-1.5 rounded-full bg-card border border-border/60 px-3 py-1.5 text-xs font-bold shadow-sm min-w-0 truncate">
             🎵 {line.song}
           </span>
           <button
@@ -400,7 +400,7 @@ function LouvorPage() {
           </div>
 
           {/* Letra em inglês com coloração de score */}
-          <p className="font-display text-2xl leading-snug">
+          <p className="font-display text-2xl leading-snug break-words">
             {phase === "scored" && score
               ? line.en.split(/\s+/).map((tok, i) => {
                   const norm = tok.toLowerCase().replace(/[^a-z0-9']/g, "");
@@ -419,7 +419,7 @@ function LouvorPage() {
           </p>
 
           {/* Tradução */}
-          <p className="text-sm text-muted-foreground mt-2 italic">{line.pt}</p>
+          <p className="text-sm text-muted-foreground mt-2 italic break-words">{line.pt}</p>
 
           {/* Transcrição ao vivo */}
           {(listening || transcriptText) && (
@@ -440,10 +440,10 @@ function LouvorPage() {
             <BookOpen className="size-3.5" />
             {line.verse.ref}
           </span>
-          <p className="font-display text-base font-bold leading-snug text-foreground">
+          <p className="font-display text-base font-bold leading-snug text-foreground break-words">
             "{line.verse.en}"
           </p>
-          <p className="text-xs text-muted-foreground italic mt-1.5">
+          <p className="text-xs text-muted-foreground italic mt-1.5 break-words">
             "{line.verse.pt}"
           </p>
         </section>

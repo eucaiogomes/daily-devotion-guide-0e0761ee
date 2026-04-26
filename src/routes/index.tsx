@@ -2,6 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { AppHeader } from "@/components/AppHeader";
 import { BottomNav } from "@/components/BottomNav";
+import { Onboarding, useOnboarding } from "@/components/Onboarding";
 import { getPsalmByDay, TOTAL_DAYS } from "@/data/psalms";
 import { isMissionCompletedToday, syncOfflineMissions } from "@/lib/offlineMission";
 import { getLessonProgress, findCurrentDay, type LessonProgressEntry } from "@/lib/lessonProgress";
@@ -39,6 +40,7 @@ function getGreeting() {
 }
 
 function Index() {
+  const { show: showOnboarding, done: onboardingDone } = useOnboarding();
   const [currentDay, setCurrentDay] = useState(1);
   const today = getPsalmByDay(currentDay);
   const v1 = today.verses[0];
@@ -72,7 +74,8 @@ function Index() {
 
   return (
     <div className="min-h-screen bg-gradient-sky pb-32">
-      <AppHeader streak={3} gold={42} hearts={5} />
+      {showOnboarding && <Onboarding onDone={onboardingDone} />}
+      <AppHeader />
 
       <main className="mx-auto flex max-w-md flex-col px-5 pt-3 gap-6">
 
@@ -127,10 +130,10 @@ function Index() {
             </span>
 
             {/* Versículo */}
-            <p className="mt-4 font-display text-xl leading-snug max-w-[17rem]">
+            <p className="mt-4 font-display text-xl leading-snug break-words pr-20">
               "{v1.en}"
             </p>
-            <p className="mt-2 text-xs italic opacity-75 leading-snug max-w-[16rem]">
+            <p className="mt-2 text-xs italic opacity-75 leading-snug break-words pr-20">
               {v1.pt}
             </p>
             <p className="mt-1.5 text-[11px] font-bold opacity-90">— {v1.ref}</p>
@@ -154,25 +157,25 @@ function Index() {
             <Link
               to="/lesson/$day"
               params={{ day: String(currentDay) }}
-              className="mt-5 inline-flex items-center gap-2 rounded-full bg-primary-foreground px-6 py-3.5 font-display text-sm font-bold text-primary shadow-soft active:translate-y-0.5 transition animate-pulse-cta"
+              className="mt-5 inline-flex w-fit max-w-full items-center gap-2 rounded-full bg-primary-foreground px-5 py-3.5 font-display text-sm font-bold text-primary shadow-soft active:translate-y-0.5 transition animate-pulse-cta"
             >
               {isDoneSaved ? (
                 <>
-                  <CheckCircle2 className="size-4" />
-                  Revisar lição de hoje
+                  <CheckCircle2 className="size-4 shrink-0" />
+                  <span>Revisar lição</span>
                 </>
               ) : isInProgress ? (
                 <>
-                  <RotateCcw className="size-4" />
-                  Continuar de onde parei
+                  <RotateCcw className="size-4 shrink-0" />
+                  <span>Continuar de onde parei</span>
                 </>
               ) : (
                 <>
-                  <Play className="size-4 fill-current" />
-                  Começar agora
+                  <Play className="size-4 shrink-0 fill-current" />
+                  <span>Começar agora</span>
                 </>
               )}
-              <ChevronRight className="size-4 -mr-1" />
+              <ChevronRight className="size-4 shrink-0 -mr-1" />
             </Link>
 
             {!isInProgress && !isDoneSaved && (
@@ -213,14 +216,14 @@ function Index() {
                       {day}
                     </span>
                   </div>
-                  <div className="min-w-0 flex-1">
-                    <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
+                  <div className="min-w-0 flex-1 overflow-hidden">
+                    <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground truncate">
                       {p.title}
                     </p>
-                    <p className="font-display text-sm font-semibold text-foreground truncate mt-0.5">
+                    <p className="font-display text-sm font-semibold text-foreground line-clamp-2 mt-0.5">
                       "{p.verses[0].en}"
                     </p>
-                    <p className="text-[11px] text-muted-foreground mt-0.5">
+                    <p className="text-[11px] text-muted-foreground mt-0.5 truncate">
                       {p.verses[0].ref} · ≈ 5 min
                     </p>
                   </div>

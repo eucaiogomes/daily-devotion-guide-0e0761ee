@@ -50,11 +50,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const fetchProfile = async (userId: string) => {
     try {
-      const { data } = await supabase
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const { data } = await (supabase as any)
         .from("profiles")
         .select("display_name")
         .eq("id", userId)
-        .maybeSingle(); // não lança erro se não encontrar
+        .maybeSingle();
       if (data?.display_name) setDisplayName(data.display_name);
     } catch {
       // tabela ainda não criada ou offline — ignora
