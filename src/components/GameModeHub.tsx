@@ -1,8 +1,6 @@
 import { Link } from "@tanstack/react-router";
 import {
   Music,
-  Mic,
-  Sparkles,
   Zap,
   Layers,
   Skull,
@@ -53,36 +51,16 @@ const MODES: Mode[] = [
   {
     id: "praise",
     title: "Cantar Louvor",
-    subtitle: "Cante Amazing Grace",
+    subtitle: "Louvores famosos · fala e escuta",
     icon: <Music className="size-6" />,
     bubble: "bg-gradient-lavender text-white",
-    to: "/devotional/$id",
-    params: { id: "amazing-grace" },
+    to: "/louvor",
     xp: 12,
-  },
-  {
-    id: "match",
-    title: "Conectar Palavras",
-    subtitle: "Ligue inglês ao português",
-    icon: <Sparkles className="size-6" />,
-    bubble: "bg-gradient-green text-white",
-    to: "/lesson/$day",
-    params: { day: "1" },
-    xp: 8,
-  },
-  {
-    id: "speak",
-    title: "Treinar a Voz",
-    subtitle: "Repita versículos",
-    icon: <Mic className="size-6" />,
-    bubble: "bg-gradient-hero text-primary-foreground",
-    to: "/lesson/$day",
-    params: { day: "1" },
-    xp: 8,
   },
 ];
 
 export function GameModeHub() {
+
   return (
     <section>
       <div className="flex items-end justify-between px-1 mb-4">

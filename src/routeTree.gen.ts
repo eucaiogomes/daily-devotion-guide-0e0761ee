@@ -11,13 +11,14 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as TreinosRouteImport } from './routes/treinos'
 import { Route as RushRouteImport } from './routes/rush'
+import { Route as LouvorRouteImport } from './routes/louvor'
 import { Route as ForcaRouteImport } from './routes/forca'
 import { Route as ConfiguracoesRouteImport } from './routes/configuracoes'
+import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AnkiRouteImport } from './routes/anki'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as LessonDayRouteImport } from './routes/lesson.$day'
 import { Route as DevotionalIdRouteImport } from './routes/devotional.$id'
-import { Route as ApiTtsRouteImport } from './routes/api/tts'
 
 const TreinosRoute = TreinosRouteImport.update({
   id: '/treinos',
@@ -29,6 +30,11 @@ const RushRoute = RushRouteImport.update({
   path: '/rush',
   getParentRoute: () => rootRouteImport,
 } as any)
+const LouvorRoute = LouvorRouteImport.update({
+  id: '/louvor',
+  path: '/louvor',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ForcaRoute = ForcaRouteImport.update({
   id: '/forca',
   path: '/forca',
@@ -37,6 +43,11 @@ const ForcaRoute = ForcaRouteImport.update({
 const ConfiguracoesRoute = ConfiguracoesRouteImport.update({
   id: '/configuracoes',
   path: '/configuracoes',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AuthRoute = AuthRouteImport.update({
+  id: '/auth',
+  path: '/auth',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AnkiRoute = AnkiRouteImport.update({
@@ -59,31 +70,28 @@ const DevotionalIdRoute = DevotionalIdRouteImport.update({
   path: '/devotional/$id',
   getParentRoute: () => rootRouteImport,
 } as any)
-const ApiTtsRoute = ApiTtsRouteImport.update({
-  id: '/api/tts',
-  path: '/api/tts',
-  getParentRoute: () => rootRouteImport,
-} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/anki': typeof AnkiRoute
+  '/auth': typeof AuthRoute
   '/configuracoes': typeof ConfiguracoesRoute
   '/forca': typeof ForcaRoute
+  '/louvor': typeof LouvorRoute
   '/rush': typeof RushRoute
   '/treinos': typeof TreinosRoute
-  '/api/tts': typeof ApiTtsRoute
   '/devotional/$id': typeof DevotionalIdRoute
   '/lesson/$day': typeof LessonDayRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/anki': typeof AnkiRoute
+  '/auth': typeof AuthRoute
   '/configuracoes': typeof ConfiguracoesRoute
   '/forca': typeof ForcaRoute
+  '/louvor': typeof LouvorRoute
   '/rush': typeof RushRoute
   '/treinos': typeof TreinosRoute
-  '/api/tts': typeof ApiTtsRoute
   '/devotional/$id': typeof DevotionalIdRoute
   '/lesson/$day': typeof LessonDayRoute
 }
@@ -91,11 +99,12 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/anki': typeof AnkiRoute
+  '/auth': typeof AuthRoute
   '/configuracoes': typeof ConfiguracoesRoute
   '/forca': typeof ForcaRoute
+  '/louvor': typeof LouvorRoute
   '/rush': typeof RushRoute
   '/treinos': typeof TreinosRoute
-  '/api/tts': typeof ApiTtsRoute
   '/devotional/$id': typeof DevotionalIdRoute
   '/lesson/$day': typeof LessonDayRoute
 }
@@ -104,33 +113,36 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/anki'
+    | '/auth'
     | '/configuracoes'
     | '/forca'
+    | '/louvor'
     | '/rush'
     | '/treinos'
-    | '/api/tts'
     | '/devotional/$id'
     | '/lesson/$day'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
     | '/anki'
+    | '/auth'
     | '/configuracoes'
     | '/forca'
+    | '/louvor'
     | '/rush'
     | '/treinos'
-    | '/api/tts'
     | '/devotional/$id'
     | '/lesson/$day'
   id:
     | '__root__'
     | '/'
     | '/anki'
+    | '/auth'
     | '/configuracoes'
     | '/forca'
+    | '/louvor'
     | '/rush'
     | '/treinos'
-    | '/api/tts'
     | '/devotional/$id'
     | '/lesson/$day'
   fileRoutesById: FileRoutesById
@@ -138,11 +150,12 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AnkiRoute: typeof AnkiRoute
+  AuthRoute: typeof AuthRoute
   ConfiguracoesRoute: typeof ConfiguracoesRoute
   ForcaRoute: typeof ForcaRoute
+  LouvorRoute: typeof LouvorRoute
   RushRoute: typeof RushRoute
   TreinosRoute: typeof TreinosRoute
-  ApiTtsRoute: typeof ApiTtsRoute
   DevotionalIdRoute: typeof DevotionalIdRoute
   LessonDayRoute: typeof LessonDayRoute
 }
@@ -163,6 +176,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof RushRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/louvor': {
+      id: '/louvor'
+      path: '/louvor'
+      fullPath: '/louvor'
+      preLoaderRoute: typeof LouvorRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/forca': {
       id: '/forca'
       path: '/forca'
@@ -175,6 +195,13 @@ declare module '@tanstack/react-router' {
       path: '/configuracoes'
       fullPath: '/configuracoes'
       preLoaderRoute: typeof ConfiguracoesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/auth': {
+      id: '/auth'
+      path: '/auth'
+      fullPath: '/auth'
+      preLoaderRoute: typeof AuthRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/anki': {
@@ -205,24 +232,18 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DevotionalIdRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/api/tts': {
-      id: '/api/tts'
-      path: '/api/tts'
-      fullPath: '/api/tts'
-      preLoaderRoute: typeof ApiTtsRouteImport
-      parentRoute: typeof rootRouteImport
-    }
   }
 }
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AnkiRoute: AnkiRoute,
+  AuthRoute: AuthRoute,
   ConfiguracoesRoute: ConfiguracoesRoute,
   ForcaRoute: ForcaRoute,
+  LouvorRoute: LouvorRoute,
   RushRoute: RushRoute,
   TreinosRoute: TreinosRoute,
-  ApiTtsRoute: ApiTtsRoute,
   DevotionalIdRoute: DevotionalIdRoute,
   LessonDayRoute: LessonDayRoute,
 }

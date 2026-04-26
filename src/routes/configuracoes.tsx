@@ -14,6 +14,8 @@ import {
 } from "@/lib/offlineMission";
 import { findCurrentDay } from "@/lib/lessonProgress";
 import { TOTAL_DAYS } from "@/data/psalms";
+import { useAuth } from "@/hooks/useAuth";
+import { useNavigate } from "@tanstack/react-router";
 import {
   Bell,
   CheckCircle2,
@@ -26,6 +28,8 @@ import {
   Star,
   Info,
   Flame,
+  LogOut,
+  UserCircle,
 } from "lucide-react";
 
 export const Route = createFileRoute("/configuracoes")({
@@ -88,6 +92,8 @@ function SettingRow({
 }
 
 function ConfigPage() {
+  const { user, displayName, signOut } = useAuth();
+  const navigate = useNavigate();
   const [online, setOnline] = useState(true);
   const [reminderEnabled, setReminderEnabled] = useState(false);
   const [reminderTime, setReminderTime] = useState("08:00");
@@ -293,8 +299,51 @@ function ConfigPage() {
           </div>
         </section>
 
+        {/* Minha conta */}
+        <section className="rounded-3xl border border-border/60 bg-card px-5 shadow-soft animate-slide-up" style={{ animationDelay: "0.18s" }}>
+          <div className="flex items-center gap-2 pt-4 pb-2 border-b border-border/50">
+            <div className="size-8 rounded-xl bg-muted flex items-center justify-center">
+              <UserCircle className="size-4" />
+            </div>
+            <p className="font-display text-lg font-bold">Minha conta</p>
+          </div>
+
+          <div className="py-3.5 space-y-1">
+            <p className="text-sm font-bold text-foreground">
+              {displayName ?? "Visitante"}
+            </p>
+            <p className="text-xs text-muted-foreground">
+              {user?.is_anonymous ? "Conta visitante · progresso local" : user?.email}
+            </p>
+          </div>
+
+          {user?.is_anonymous ? (
+            <div className="pb-4">
+              <p className="text-xs text-muted-foreground mb-3">
+                Crie uma conta para salvar seu progresso em qualquer dispositivo.
+              </p>
+              <button
+                onClick={() => navigate({ to: "/auth" })}
+                className="w-full rounded-full bg-gradient-hero text-primary-foreground py-3 text-sm font-bold shadow-soft active:translate-y-0.5 transition"
+              >
+                Criar conta gratuita
+              </button>
+            </div>
+          ) : (
+            <div className="pb-4">
+              <button
+                onClick={async () => { await signOut(); navigate({ to: "/auth" }); }}
+                className="w-full flex items-center justify-center gap-2 rounded-full border-2 border-border bg-background py-3 text-sm font-bold text-foreground active:translate-y-0.5 transition"
+              >
+                <LogOut className="size-4" />
+                Sair da conta
+              </button>
+            </div>
+          )}
+        </section>
+
         {/* Sobre */}
-        <section className="rounded-3xl border border-border/60 bg-card p-5 shadow-soft animate-slide-up" style={{ animationDelay: "0.18s" }}>
+        <section className="rounded-3xl border border-border/60 bg-card p-5 shadow-soft animate-slide-up" style={{ animationDelay: "0.22s" }}>
           <div className="flex items-center gap-2 mb-3">
             <div className="size-8 rounded-xl bg-muted flex items-center justify-center">
               <Info className="size-4" />
