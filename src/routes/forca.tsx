@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
-import { ArrowLeft, BookOpen, Heart, Lightbulb, RotateCcw, Trophy, Volume2 } from "lucide-react";
+import { ArrowLeft, BookOpen, Heart, Lightbulb, Quote, RotateCcw, Trophy, Volume2 } from "lucide-react";
 import { BottomNav } from "@/components/BottomNav";
 import { useSpeech } from "@/hooks/useSpeech";
 import { PSALM_BANK } from "@/data/psalmsBank";
