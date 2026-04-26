@@ -25,13 +25,19 @@ interface ForcaWord {
   ipa?: string;
   example?: string;
   psalmRef: string;
+  /** Versículo (em inglês) que contém a palavra — usado como contexto. */
+  verseEn: string;
+  /** Tradução em português do mesmo versículo. */
+  versePt: string;
+  /** Referência bíblica curta do versículo (ex: "Psalm 23:1"). */
+  verseRef: string;
 }
 
 const MAX_MISTAKES = 6;
 const ALPHABET = "ABCDEFGHIJKLMNOPQRSTUVWXYZ".split("");
 
-/** Pool de palavras: todas as keywords dos salmos (sem duplicatas).
- *  Filtra palavras de 1 letra e tokens com espaço/apóstrofo. */
+/** Pool de palavras: keywords cujo lema aparece em algum versículo do mesmo salmo.
+ *  Garante que sempre teremos um versículo de contexto para o jogador. */
 function buildWordPool(): ForcaWord[] {
   const seen = new Set<string>();
   const pool: ForcaWord[] = [];
@@ -41,6 +47,16 @@ function buildWordPool(): ForcaWord[] {
       if (word.length < 3) continue;
       if (!/^[a-z]+$/.test(word)) continue;
       if (seen.has(word)) continue;
+
+      // Encontra um versículo do salmo que contenha a palavra (match em qualquer caso).
+      const re = new RegExp(`\\b${word}\\b`, "i");
+      const verse =
+        p.verses.find((v) => re.test(v.en)) ??
+        // fallback: tenta com sufixos comuns (s/es/ed/ing) na palavra do versículo
+        p.verses.find((v) => new RegExp(`\\b${word}(s|es|ed|ing)?\\b`, "i").test(v.en));
+
+      if (!verse) continue; // só inclui palavras com versículo de contexto
+
       seen.add(word);
       pool.push({
         en: word,
@@ -48,6 +64,9 @@ function buildWordPool(): ForcaWord[] {
         ipa: kw.ipa,
         example: kw.example,
         psalmRef: p.title,
+        verseEn: verse.en,
+        versePt: verse.pt,
+        verseRef: verse.ref,
       });
     }
   }
