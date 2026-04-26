@@ -1,16 +1,39 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 
 /**
- * useSpeech — text-to-speech with ElevenLabs (humanized) and Web Speech API fallback.
+ * useSpeech — plays pre-generated ElevenLabs MP3s served from /audio/tts/.
  *
- * Uses the /api/tts server endpoint backed by ElevenLabs for natural, expressive voices.
- * Falls back to the browser's built-in SpeechSynthesis if the API call fails or is offline.
+ * Audio files are generated offline by `scripts/generate-tts.ts` and committed
+ * to the repo. At runtime we just compute the SHA1 of `${voiceId}|${text}` and
+ * play the matching file — no API calls, no costs, works offline.
+ *
+ * Falls back to the browser's built-in SpeechSynthesis if a file is missing
+ * (e.g. a phrase added after the last generation run).
  */
 
-// Cache audio blobs per (voiceId|text) so repeated taps are instant and don't re-bill.
-const audioCache = new Map<string, string>();
-
 const DEFAULT_VOICE_ID = "EXAVITQu4vr4xnSDxMaL"; // Sarah
+
+// SHA1 in the browser via Web Crypto. Returns a hex string.
+async function sha1Hex(input: string): Promise<string> {
+  const data = new TextEncoder().encode(input);
+  const buf = await crypto.subtle.digest("SHA-1", data);
+  return Array.from(new Uint8Array(buf))
+    .map((b) => b.toString(16).padStart(2, "0"))
+    .join("");
+}
+
+// Keep resolved URLs around so we don't hash the same phrase twice.
+const urlCache = new Map<string, string>();
+
+async function resolveUrl(text: string, voiceId: string) {
+  const key = `${voiceId}|${text}`;
+  const cached = urlCache.get(key);
+  if (cached) return cached;
+  const id = await sha1Hex(key);
+  const url = `/audio/tts/${id}.mp3`;
+  urlCache.set(key, url);
+  return url;
+}
 
 export function useSpeech(defaultLang = "en-US") {
   const [supported, setSupported] = useState(true);
@@ -18,7 +41,6 @@ export function useSpeech(defaultLang = "en-US") {
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const fallbackVoiceRef = useRef<SpeechSynthesisVoice | null>(null);
 
-  // Pick the best fallback voice once available.
   useEffect(() => {
     if (typeof window === "undefined" || !window.speechSynthesis) return;
 
@@ -86,32 +108,18 @@ export function useSpeech(defaultLang = "en-US") {
         pitch?: number;
         lang?: string;
         voiceId?: string;
-        modelId?: string;
       },
     ) => {
       if (!text) return;
       stop();
 
       const voiceId = opts?.voiceId ?? DEFAULT_VOICE_ID;
-      const cacheKey = `${voiceId}|${text}`;
 
       try {
-        let url = audioCache.get(cacheKey);
-        if (!url) {
-          const res = await fetch("/api/tts", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              text,
-              voiceId,
-              modelId: opts?.modelId,
-            }),
-          });
-          if (!res.ok) throw new Error(`TTS ${res.status}`);
-          const blob = await res.blob();
-          url = URL.createObjectURL(blob);
-          audioCache.set(cacheKey, url);
-        }
+        const url = await resolveUrl(text, voiceId);
+        // HEAD check so we can fall back gracefully if the file isn't bundled.
+        const head = await fetch(url, { method: "HEAD" });
+        if (!head.ok) throw new Error(`Audio not found (${head.status})`);
 
         const audio = new Audio(url);
         audio.playbackRate = opts?.rate ?? 1;
@@ -123,20 +131,17 @@ export function useSpeech(defaultLang = "en-US") {
         };
         audio.onerror = () => {
           setSpeaking(false);
-          // If playback fails, try the browser fallback.
           speakFallback(text, opts);
         };
         await audio.play();
       } catch (err) {
-        // Network error / API failure → use the browser's native voice.
-        console.warn("[useSpeech] ElevenLabs failed, falling back:", err);
+        console.warn("[useSpeech] using browser fallback:", err);
         speakFallback(text, opts);
       }
     },
     [stop, speakFallback],
   );
 
-  // Stop on unmount to avoid speech leaking across pages.
   useEffect(() => () => stop(), [stop]);
 
   return { supported, speaking, speak, stop };
