@@ -300,6 +300,60 @@ function ForcaPage() {
   );
 }
 
+/** Renderiza o versículo em inglês destacando (ou censurando) a palavra-alvo.
+ *  Cobre formas com sufixos comuns (s/es/ed/ing). */
+function ContextVerse({
+  verseEn,
+  word,
+  finished,
+}: {
+  verseEn: string;
+  word: string;
+  finished: boolean;
+}) {
+  const tokens = verseEn.split(/(\s+|[.,;:!?"'()\[\]])/);
+  const base = word.toLowerCase();
+  const isTarget = (t: string) => {
+    const m = t.toLowerCase().match(/^([a-z]+)$/);
+    if (!m) return false;
+    const w = m[1];
+    if (w === base) return true;
+    if (w === base + "s" || w === base + "es" || w === base + "ed" || w === base + "ing") return true;
+    if (base.endsWith("e") && (w === base.slice(0, -1) + "ing" || w === base + "d")) return true;
+    return false;
+  };
+
+  return (
+    <>
+      {tokens.map((t, i) => {
+        if (!t) return null;
+        if (isTarget(t)) {
+          if (finished) {
+            return (
+              <span
+                key={i}
+                className="rounded-md bg-success/20 px-1.5 py-0.5 font-extrabold text-success"
+              >
+                {t}
+              </span>
+            );
+          }
+          return (
+            <span
+              key={i}
+              className="inline-block rounded-md bg-primary/15 px-2 py-0.5 font-mono font-extrabold tracking-widest text-primary"
+              aria-label="palavra a descobrir"
+            >
+              {"_".repeat(t.length)}
+            </span>
+          );
+        }
+        return <span key={i}>{t}</span>;
+      })}
+    </>
+  );
+}
+
 function ResultPanel({
   won,
   word,
