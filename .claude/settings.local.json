@@ -12,7 +12,10 @@
       "PowerShell(netstat *)",
       "PowerShell(Stop-Process *)",
       "PowerShell(npm run *)",
-      "WebFetch(domain:kjpzkysjkaxdvsinolte.supabase.co)"
+      "WebFetch(domain:kjpzkysjkaxdvsinolte.supabase.co)",
+      "Bash(git add *)",
+      "Bash(git commit -m ' *)",
+      "Bash(git push *)"
     ]
   }
 }
