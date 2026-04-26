@@ -467,7 +467,7 @@ function Hangman({ mistakes }: { mistakes: number }) {
   return (
     <svg
       viewBox="0 0 160 180"
-      className="h-44 w-40"
+      className="h-20 w-[72px]"
       aria-label={`Forca: ${mistakes} de ${MAX_MISTAKES} erros`}
     >
       {/* Estrutura sempre visível */}
