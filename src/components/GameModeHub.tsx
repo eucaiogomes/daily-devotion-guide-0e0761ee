@@ -1,11 +1,8 @@
 import { Link } from "@tanstack/react-router";
 import {
-  BookOpen,
   Music,
   Mic,
-  HandHeart,
   Sparkles,
-  Headphones,
   Zap,
   Trophy,
   Layers,
