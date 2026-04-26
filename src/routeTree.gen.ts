@@ -17,6 +17,7 @@ import { Route as AnkiRouteImport } from './routes/anki'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as LessonDayRouteImport } from './routes/lesson.$day'
 import { Route as DevotionalIdRouteImport } from './routes/devotional.$id'
+import { Route as ApiTtsRouteImport } from './routes/api/tts'
 
 const TreinosRoute = TreinosRouteImport.update({
   id: '/treinos',
@@ -58,6 +59,11 @@ const DevotionalIdRoute = DevotionalIdRouteImport.update({
   path: '/devotional/$id',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiTtsRoute = ApiTtsRouteImport.update({
+  id: '/api/tts',
+  path: '/api/tts',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -66,6 +72,7 @@ export interface FileRoutesByFullPath {
   '/forca': typeof ForcaRoute
   '/rush': typeof RushRoute
   '/treinos': typeof TreinosRoute
+  '/api/tts': typeof ApiTtsRoute
   '/devotional/$id': typeof DevotionalIdRoute
   '/lesson/$day': typeof LessonDayRoute
 }
@@ -76,6 +83,7 @@ export interface FileRoutesByTo {
   '/forca': typeof ForcaRoute
   '/rush': typeof RushRoute
   '/treinos': typeof TreinosRoute
+  '/api/tts': typeof ApiTtsRoute
   '/devotional/$id': typeof DevotionalIdRoute
   '/lesson/$day': typeof LessonDayRoute
 }
@@ -87,6 +95,7 @@ export interface FileRoutesById {
   '/forca': typeof ForcaRoute
   '/rush': typeof RushRoute
   '/treinos': typeof TreinosRoute
+  '/api/tts': typeof ApiTtsRoute
   '/devotional/$id': typeof DevotionalIdRoute
   '/lesson/$day': typeof LessonDayRoute
 }
@@ -99,6 +108,7 @@ export interface FileRouteTypes {
     | '/forca'
     | '/rush'
     | '/treinos'
+    | '/api/tts'
     | '/devotional/$id'
     | '/lesson/$day'
   fileRoutesByTo: FileRoutesByTo
@@ -109,6 +119,7 @@ export interface FileRouteTypes {
     | '/forca'
     | '/rush'
     | '/treinos'
+    | '/api/tts'
     | '/devotional/$id'
     | '/lesson/$day'
   id:
@@ -119,6 +130,7 @@ export interface FileRouteTypes {
     | '/forca'
     | '/rush'
     | '/treinos'
+    | '/api/tts'
     | '/devotional/$id'
     | '/lesson/$day'
   fileRoutesById: FileRoutesById
@@ -130,6 +142,7 @@ export interface RootRouteChildren {
   ForcaRoute: typeof ForcaRoute
   RushRoute: typeof RushRoute
   TreinosRoute: typeof TreinosRoute
+  ApiTtsRoute: typeof ApiTtsRoute
   DevotionalIdRoute: typeof DevotionalIdRoute
   LessonDayRoute: typeof LessonDayRoute
 }
@@ -192,6 +205,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DevotionalIdRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/tts': {
+      id: '/api/tts'
+      path: '/api/tts'
+      fullPath: '/api/tts'
+      preLoaderRoute: typeof ApiTtsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -202,6 +222,7 @@ const rootRouteChildren: RootRouteChildren = {
   ForcaRoute: ForcaRoute,
   RushRoute: RushRoute,
   TreinosRoute: TreinosRoute,
+  ApiTtsRoute: ApiTtsRoute,
   DevotionalIdRoute: DevotionalIdRoute,
   LessonDayRoute: LessonDayRoute,
 }
