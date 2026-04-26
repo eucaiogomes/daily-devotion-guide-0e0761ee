@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
-import { ArrowLeft, BookOpen, Heart, Lightbulb, RotateCcw, Trophy, Volume2 } from "lucide-react";
+import { ArrowLeft, BookOpen, Heart, Lightbulb, Quote, RotateCcw, Trophy, Volume2 } from "lucide-react";
 import { BottomNav } from "@/components/BottomNav";
 import { useSpeech } from "@/hooks/useSpeech";
 import { PSALM_BANK } from "@/data/psalmsBank";
@@ -25,13 +25,19 @@ interface ForcaWord {
   ipa?: string;
   example?: string;
   psalmRef: string;
+  /** Versículo (em inglês) que contém a palavra — usado como contexto. */
+  verseEn: string;
+  /** Tradução em português do mesmo versículo. */
+  versePt: string;
+  /** Referência bíblica curta do versículo (ex: "Psalm 23:1"). */
+  verseRef: string;
 }
 
 const MAX_MISTAKES = 6;
 const ALPHABET = "ABCDEFGHIJKLMNOPQRSTUVWXYZ".split("");
 
-/** Pool de palavras: todas as keywords dos salmos (sem duplicatas).
- *  Filtra palavras de 1 letra e tokens com espaço/apóstrofo. */
+/** Pool de palavras: keywords cujo lema aparece em algum versículo do mesmo salmo.
+ *  Garante que sempre teremos um versículo de contexto para o jogador. */
 function buildWordPool(): ForcaWord[] {
   const seen = new Set<string>();
   const pool: ForcaWord[] = [];
@@ -41,6 +47,16 @@ function buildWordPool(): ForcaWord[] {
       if (word.length < 3) continue;
       if (!/^[a-z]+$/.test(word)) continue;
       if (seen.has(word)) continue;
+
+      // Encontra um versículo do salmo que contenha a palavra (match em qualquer caso).
+      const re = new RegExp(`\\b${word}\\b`, "i");
+      const verse =
+        p.verses.find((v) => re.test(v.en)) ??
+        // fallback: tenta com sufixos comuns (s/es/ed/ing) na palavra do versículo
+        p.verses.find((v) => new RegExp(`\\b${word}(s|es|ed|ing)?\\b`, "i").test(v.en));
+
+      if (!verse) continue; // só inclui palavras com versículo de contexto
+
       seen.add(word);
       pool.push({
         en: word,
@@ -48,6 +64,9 @@ function buildWordPool(): ForcaWord[] {
         ipa: kw.ipa,
         example: kw.example,
         psalmRef: p.title,
+        verseEn: verse.en,
+        versePt: verse.pt,
+        verseRef: verse.ref,
       });
     }
   }
@@ -166,38 +185,74 @@ function ForcaPage() {
         </div>
       </header>
 
-      <main className="mx-auto flex w-full max-w-md flex-1 flex-col px-5 py-5">
-        {/* Status: vidas + sequência */}
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-1" aria-label={`${livesLeft} vidas restantes`}>
-            {Array.from({ length: MAX_MISTAKES }).map((_, i) => (
-              <Heart
-                key={i}
-                className={`size-5 transition ${
-                  i < livesLeft ? "fill-streak text-streak" : "text-muted opacity-40"
-                }`}
-              />
-            ))}
+      <main className="mx-auto flex w-full max-w-md flex-1 flex-col px-5 py-4">
+        {/* Faixa de status: vidas + boneco compacto + sequência */}
+        <div className="flex items-center justify-between gap-3 rounded-2xl border border-border bg-card/60 px-3 py-2">
+          <div className="flex flex-col gap-1">
+            <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
+              Vidas
+            </span>
+            <div className="flex items-center gap-0.5" aria-label={`${livesLeft} vidas restantes`}>
+              {Array.from({ length: MAX_MISTAKES }).map((_, i) => (
+                <Heart
+                  key={i}
+                  className={`size-4 transition ${
+                    i < livesLeft ? "fill-streak text-streak" : "text-muted opacity-40"
+                  }`}
+                />
+              ))}
+            </div>
           </div>
-          <span className="text-xs font-extrabold uppercase tracking-widest text-muted-foreground tabular-nums">
-            Sequência: <span className="text-success">{streak}</span>
-          </span>
-        </div>
-
-        {/* Boneco */}
-        <div className="mt-4 flex justify-center">
           <Hangman mistakes={mistakes} />
+          <div className="flex flex-col items-end gap-1">
+            <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
+              Sequência
+            </span>
+            <span className="font-display text-lg font-extrabold text-success tabular-nums">
+              {streak}
+            </span>
+          </div>
         </div>
 
-        {/* Dica de salmo */}
-        <p className="mt-4 text-center text-[11px] font-bold uppercase tracking-widest text-muted-foreground">
-          <BookOpen className="mr-1 inline size-3.5 text-primary" />
-          {word.psalmRef}
-        </p>
+        {/* DESTAQUE PRINCIPAL: o versículo de contexto */}
+        <section
+          aria-label="Versículo de contexto"
+          className="mt-4 rounded-3xl border-2 border-primary/30 bg-gradient-to-br from-primary/10 via-card to-card p-5 shadow-chunky"
+        >
+          <div className="flex items-center justify-between">
+            <span className="inline-flex items-center gap-1.5 rounded-full bg-primary/15 px-2.5 py-1 text-[10px] font-extrabold uppercase tracking-widest text-primary">
+              <BookOpen className="size-3.5" />
+              {word.verseRef}
+            </span>
+            <button
+              onClick={() => speak(word.verseEn)}
+              aria-label="Ouvir versículo"
+              className={`flex size-8 items-center justify-center rounded-full bg-card text-primary border border-border ${
+                speaking ? "animate-pulse" : ""
+              }`}
+            >
+              <Volume2 className="size-4" />
+            </button>
+          </div>
 
-        {/* Palavra */}
+          <Quote className="mt-3 size-5 text-primary/40" />
+          <p className="mt-1 font-display text-lg font-bold leading-snug text-foreground">
+            <ContextVerse verseEn={word.verseEn} word={word.en} finished={finished} />
+          </p>
+          <p className="mt-2 text-sm font-medium italic text-muted-foreground">
+            "{word.versePt}"
+          </p>
+          <p className="mt-3 text-[11px] font-bold uppercase tracking-widest text-muted-foreground">
+            {word.psalmRef}
+          </p>
+        </section>
+
+        {/* Pergunta + palavra */}
+        <p className="mt-4 text-center text-xs font-extrabold uppercase tracking-widest text-muted-foreground">
+          Qual é a palavra que falta?
+        </p>
         <div
-          className="mt-3 flex flex-wrap justify-center gap-1.5"
+          className="mt-2 flex flex-wrap justify-center gap-1.5"
           aria-label={`Palavra de ${letters.length} letras`}
         >
           {letters.map((l, i) => {
@@ -219,10 +274,12 @@ function ForcaPage() {
           })}
         </div>
 
-        {/* Tradução / dica */}
-        <p className="mt-3 text-center text-sm font-semibold text-muted-foreground italic">
-          {hintUsed || finished ? `"${word.pt}"` : "Toque em 💡 para ver a tradução"}
-        </p>
+        {/* Tradução da palavra (apenas se usar dica ou terminar) */}
+        {(hintUsed || finished) && (
+          <p className="mt-2 text-center text-sm font-semibold text-muted-foreground italic">
+            Tradução: <span className="text-foreground not-italic">{word.pt}</span>
+          </p>
+        )}
 
         {/* Painel pós-jogo OU teclado */}
         {finished ? (
@@ -240,6 +297,60 @@ function ForcaPage() {
 
       <BottomNav />
     </div>
+  );
+}
+
+/** Renderiza o versículo em inglês destacando (ou censurando) a palavra-alvo.
+ *  Cobre formas com sufixos comuns (s/es/ed/ing). */
+function ContextVerse({
+  verseEn,
+  word,
+  finished,
+}: {
+  verseEn: string;
+  word: string;
+  finished: boolean;
+}) {
+  const tokens = verseEn.split(/(\s+|[.,;:!?"'()\[\]])/);
+  const base = word.toLowerCase();
+  const isTarget = (t: string) => {
+    const m = t.toLowerCase().match(/^([a-z]+)$/);
+    if (!m) return false;
+    const w = m[1];
+    if (w === base) return true;
+    if (w === base + "s" || w === base + "es" || w === base + "ed" || w === base + "ing") return true;
+    if (base.endsWith("e") && (w === base.slice(0, -1) + "ing" || w === base + "d")) return true;
+    return false;
+  };
+
+  return (
+    <>
+      {tokens.map((t, i) => {
+        if (!t) return null;
+        if (isTarget(t)) {
+          if (finished) {
+            return (
+              <span
+                key={i}
+                className="rounded-md bg-success/20 px-1.5 py-0.5 font-extrabold text-success"
+              >
+                {t}
+              </span>
+            );
+          }
+          return (
+            <span
+              key={i}
+              className="inline-block rounded-md bg-primary/15 px-2 py-0.5 font-mono font-extrabold tracking-widest text-primary"
+              aria-label="palavra a descobrir"
+            >
+              {"_".repeat(t.length)}
+            </span>
+          );
+        }
+        return <span key={i}>{t}</span>;
+      })}
+    </>
   );
 }
 
@@ -356,7 +467,7 @@ function Hangman({ mistakes }: { mistakes: number }) {
   return (
     <svg
       viewBox="0 0 160 180"
-      className="h-44 w-40"
+      className="h-20 w-[72px]"
       aria-label={`Forca: ${mistakes} de ${MAX_MISTAKES} erros`}
     >
       {/* Estrutura sempre visível */}
