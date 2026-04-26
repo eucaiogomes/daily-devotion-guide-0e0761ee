@@ -4,7 +4,6 @@ import {
   Mic,
   Sparkles,
   Zap,
-  Trophy,
   Layers,
   Skull,
 } from "lucide-react";
@@ -14,7 +13,6 @@ type Mode = {
   title: string;
   subtitle: string;
   icon: React.ReactNode;
-  /** Tailwind classes for the icon bubble background + text color */
   bubble: string;
   to: string;
   params?: Record<string, string>;
@@ -25,8 +23,8 @@ type Mode = {
 const MODES: Mode[] = [
   {
     id: "anki",
-    title: "Anki de Versículos",
-    subtitle: "Memorize com repetição espaçada",
+    title: "Cartões de Memória",
+    subtitle: "Revise e não esqueça",
     icon: <Layers className="size-6" />,
     bubble: "bg-gradient-hero text-primary-foreground",
     to: "/anki",
@@ -35,18 +33,17 @@ const MODES: Mode[] = [
   },
   {
     id: "forca",
-    title: "Forca dos Salmos",
-    subtitle: "Adivinhe palavras em inglês",
+    title: "Jogo da Forca",
+    subtitle: "Descubra a palavra",
     icon: <Skull className="size-6" />,
     bubble: "bg-gradient-flame text-white",
     to: "/forca",
-    badge: "Novo",
     xp: 12,
   },
   {
     id: "rush",
-    title: "Match Rush",
-    subtitle: "Vocabulário contra o tempo",
+    title: "Corrida de Palavras",
+    subtitle: "Combine contra o tempo",
     icon: <Zap className="size-6" />,
     bubble: "bg-gradient-flame text-white",
     to: "/rush",
@@ -55,27 +52,27 @@ const MODES: Mode[] = [
   },
   {
     id: "praise",
-    title: "Karaokê de Louvor",
+    title: "Cantar Louvor",
     subtitle: "Cante Amazing Grace",
     icon: <Music className="size-6" />,
-    bubble: "bg-gradient-flame text-white",
+    bubble: "bg-gradient-lavender text-white",
     to: "/devotional/$id",
     params: { id: "amazing-grace" },
     xp: 12,
   },
   {
     id: "match",
-    title: "Pareamento",
-    subtitle: "Conecte EN ↔ PT",
+    title: "Conectar Palavras",
+    subtitle: "Ligue inglês ao português",
     icon: <Sparkles className="size-6" />,
-    bubble: "bg-success text-success-foreground",
+    bubble: "bg-gradient-green text-white",
     to: "/lesson/$day",
     params: { day: "1" },
     xp: 8,
   },
   {
     id: "speak",
-    title: "Pronúncia",
+    title: "Treinar a Voz",
     subtitle: "Repita versículos",
     icon: <Mic className="size-6" />,
     bubble: "bg-gradient-hero text-primary-foreground",
@@ -88,15 +85,15 @@ const MODES: Mode[] = [
 export function GameModeHub() {
   return (
     <section>
-      <div className="flex items-end justify-between px-1 mb-3">
+      <div className="flex items-end justify-between px-1 mb-4">
         <div>
-          <p className="text-xs font-bold uppercase tracking-widest text-muted-foreground">
-            Treino diário
+          <p className="text-[11px] font-bold uppercase tracking-widest text-muted-foreground">
+            Modos de prática
           </p>
-          <h2 className="font-display text-2xl font-bold">Jogue, ouça e ore</h2>
+          <h2 className="font-display text-2xl font-bold">Escolha um jogo</h2>
         </div>
-        <span className="inline-flex items-center gap-1 rounded-full bg-card px-2.5 py-1 text-xs font-extrabold text-gold shadow-sm border border-border/60">
-          <Trophy className="size-3.5" /> 365
+        <span className="inline-flex items-center gap-1 rounded-full bg-gold/10 px-3 py-1 text-xs font-extrabold text-gold border border-gold/20">
+          365 dias
         </span>
       </div>
 
@@ -106,25 +103,27 @@ export function GameModeHub() {
             key={m.id}
             to={m.to}
             params={m.params as never}
-            className="relative bg-card rounded-3xl p-4 border border-border/60 shadow-sm active:translate-y-0.5 transition"
+            className="relative bg-card rounded-3xl p-4 border border-border/60 shadow-sm active:translate-y-0.5 transition group"
           >
             {m.badge && (
-              <span className="absolute -top-1.5 right-3 bg-gradient-gold text-white text-[10px] font-extrabold px-2 py-0.5 rounded-full shadow-soft">
+              <span className="absolute -top-1.5 right-3 bg-gradient-gold text-white text-[10px] font-extrabold px-2.5 py-0.5 rounded-full shadow-soft">
                 {m.badge}
               </span>
             )}
             <div className="flex items-start justify-between gap-2">
-              <div className={`size-12 rounded-2xl flex items-center justify-center shadow-soft ${m.bubble}`}>
+              <div
+                className={`size-12 rounded-2xl flex items-center justify-center shadow-soft transition group-active:scale-95 ${m.bubble}`}
+              >
                 {m.icon}
               </div>
-              <span className="rounded-full bg-muted px-2 py-0.5 text-[10px] font-extrabold text-muted-foreground">
+              <span className="rounded-full bg-muted px-2 py-0.5 text-[10px] font-extrabold text-muted-foreground mt-0.5">
                 +{m.xp} XP
               </span>
             </div>
             <p className="mt-3 font-display text-base font-bold leading-tight text-foreground">
               {m.title}
             </p>
-            <p className="text-[11px] text-muted-foreground font-semibold mt-0.5 leading-tight">
+            <p className="text-[11px] text-muted-foreground font-semibold mt-1 leading-tight">
               {m.subtitle}
             </p>
           </Link>

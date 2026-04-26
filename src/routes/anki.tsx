@@ -118,9 +118,9 @@ function AnkiPage() {
           </Link>
           <div className="flex-1">
             <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
-              Repetição espaçada
+              Memorização
             </p>
-            <h1 className="font-display text-lg font-bold leading-tight">Anki de Versículos</h1>
+            <h1 className="font-display text-lg font-bold leading-tight">Cartões de Memória</h1>
           </div>
           <span className="rounded-full bg-primary/10 px-3 py-1 text-xs font-extrabold tabular-nums text-primary">
             {sessionDone} hoje
@@ -160,9 +160,9 @@ function AnkiPage() {
 function StatsBar({ stats }: { stats: AnkiStats }) {
   return (
     <div className="grid grid-cols-3 gap-2 mb-5">
-      <StatChip label="Devidos" value={stats.due} tone="bg-streak/10 text-streak" />
+      <StatChip label="Revisar" value={stats.due} tone="bg-streak/10 text-streak" />
       <StatChip label="Novos" value={stats.newCards} tone="bg-primary/10 text-primary" />
-      <StatChip label="Aprendidos" value={stats.learned} tone="bg-success/10 text-success" />
+      <StatChip label="Memorizados" value={stats.learned} tone="bg-success/10 text-success" />
     </div>
   );
 }
@@ -246,13 +246,13 @@ function CardView({ card, revealed, onReveal, onGrade, speak, speaking, position
         ) : (
           <div className="mt-6">
             <p className="mb-2 text-center text-[11px] font-bold uppercase tracking-widest text-muted-foreground">
-              Como você foi?
+              Você lembrou?
             </p>
             <div className="grid grid-cols-4 gap-2">
-              <GradeBtn label="Errei" sub="<1m" tone="bg-destructive text-destructive-foreground" onClick={() => onGrade("again")} />
-              <GradeBtn label="Difícil" sub="≈1d" tone="bg-streak text-primary-foreground" onClick={() => onGrade("hard")} />
-              <GradeBtn label="Bom" sub="3d+" tone="bg-success text-success-foreground" onClick={() => onGrade("good")} />
-              <GradeBtn label="Fácil" sub="7d+" tone="bg-gradient-gold text-primary-foreground" onClick={() => onGrade("easy")} />
+              <GradeBtn label="Não" sub="repetir" tone="bg-destructive text-destructive-foreground" onClick={() => onGrade("again")} />
+              <GradeBtn label="Pouco" sub="1 dia" tone="bg-streak text-primary-foreground" onClick={() => onGrade("hard")} />
+              <GradeBtn label="Sim" sub="3 dias" tone="bg-success text-success-foreground" onClick={() => onGrade("good")} />
+              <GradeBtn label="Fácil" sub="7 dias" tone="bg-gradient-gold text-primary-foreground" onClick={() => onGrade("easy")} />
             </div>
           </div>
         )}
@@ -300,12 +300,12 @@ function EmptyState({
         <CheckCircle2 className="size-10" />
       </div>
       <h2 className="mt-4 font-display text-2xl font-bold">
-        {sessionDone > 0 ? "Sessão concluída!" : "Nada para revisar agora"}
+        {sessionDone > 0 ? "Parabéns!" : "Tudo em dia!"}
       </h2>
       <p className="mt-2 max-w-xs text-sm text-muted-foreground">
         {sessionDone > 0
-          ? `Você revisou ${sessionDone} cartões. Volte amanhã para os próximos versículos.`
-          : "Todos seus versículos estão em dia. Você pode estudar todo o baralho mesmo assim."}
+          ? `Você revisou ${sessionDone} cartão${sessionDone > 1 ? "s" : ""}. Volte amanhã para continuar.`
+          : "Você não tem cartões para revisar agora. Que tal estudar todos mesmo assim?"}
       </p>
 
       <div className="mt-6 grid w-full max-w-xs gap-2">

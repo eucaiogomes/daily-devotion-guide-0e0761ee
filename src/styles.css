@@ -258,3 +258,57 @@
   .lesson-aurora::before,
   .lesson-aurora::after { animation: none !important; }
 }
+
+/* === Slide-up entrance === */
+@keyframes slide-up {
+  0%   { transform: translateY(18px); opacity: 0; }
+  100% { transform: translateY(0);    opacity: 1; }
+}
+.animate-slide-up {
+  animation: slide-up 0.5s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+/* === Subtle CTA pulse (ring only, no layout shift) === */
+@keyframes pulse-ring {
+  0%, 100% { box-shadow: 0 0 0 0   oklch(0.66 0.13 250 / 0.20); }
+  50%       { box-shadow: 0 0 0 8px oklch(0.66 0.13 250 / 0);   }
+}
+.animate-pulse-cta {
+  animation: pulse-ring 2.4s ease-in-out infinite;
+}
+
+/* === Toggle switch === */
+.toggle-track {
+  position: relative;
+  display: inline-flex;
+  width: 2.75rem;
+  height: 1.5rem;
+  border-radius: 9999px;
+  transition: background 0.2s;
+  cursor: pointer;
+  align-items: center;
+  border: none;
+  padding: 0 0.2rem;
+}
+.toggle-track[aria-checked="true"]  { background: var(--color-primary); }
+.toggle-track[aria-checked="false"] { background: var(--color-muted-foreground); opacity: 0.4; }
+.toggle-thumb {
+  width: 1.1rem;
+  height: 1.1rem;
+  border-radius: 9999px;
+  background: white;
+  transition: transform 0.2s cubic-bezier(0.34,1.56,0.64,1);
+  box-shadow: 0 1px 4px oklch(0 0 0 / 0.25);
+}
+.toggle-track[aria-checked="true"] .toggle-thumb  { transform: translateX(1.25rem); }
+.toggle-track[aria-checked="false"] .toggle-thumb { transform: translateX(0); }
+
+/* === Extra gradients === */
+:root {
+  --gradient-green: linear-gradient(140deg, oklch(0.78 0.14 155) 0%, oklch(0.68 0.15 175) 100%);
+  --gradient-lavender: linear-gradient(140deg, oklch(0.78 0.10 290) 0%, oklch(0.72 0.12 260) 100%);
+}
+@layer utilities {
+  .bg-gradient-green    { background: var(--gradient-green); }
+  .bg-gradient-lavender { background: var(--gradient-lavender); }
+}

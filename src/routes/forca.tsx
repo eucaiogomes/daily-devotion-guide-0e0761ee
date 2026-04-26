@@ -177,7 +177,7 @@ function ForcaPage() {
             <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
               Vocabulário
             </p>
-            <h1 className="font-display text-lg font-bold leading-tight">Forca dos Salmos</h1>
+            <h1 className="font-display text-lg font-bold leading-tight">Jogo da Forca</h1>
           </div>
           <span className="inline-flex items-center gap-1 rounded-full bg-gold/10 px-2.5 py-1 text-xs font-extrabold text-gold tabular-nums">
             <Trophy className="size-3.5" /> {bestStreak}
